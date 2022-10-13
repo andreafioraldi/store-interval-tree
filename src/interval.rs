@@ -1,3 +1,4 @@
+use num::Num;
 use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 use std::ops::Bound;
 use std::ops::Bound::*;
@@ -285,6 +286,19 @@ impl<T: Ord> Interval<T> {
     }
 }
 
+impl<T: Copy + Num + Ord> Interval<T> {
+    /// Returns the span between the start and the end of the interval.
+    /// None if the interval is unbounded.
+    pub fn span(&self) -> Option<T> {
+        match (&self.low(), &self.high()) {
+            (Included(low), Included(high)) => Some(*high + T::one() - *low),
+            (Included(low), Excluded(high)) | (Excluded(low), Included(high)) => Some(*high - *low),
+            (Excluded(low), Excluded(high)) => Some(*high - T::one() - *low),
+            _ => None,
+        }
+    }
+}
+
 impl<T: Ord + std::fmt::Display> std::fmt::Display for Interval<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let low: String;
@@ -420,7 +434,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn util_interval_valid_1() {
+    fn interval_valid_1() {
         assert!(Interval::valid(&Interval::new(Included(2), Included(2))));
         assert!(Interval::valid(&Interval::new(Excluded(2), Included(3))));
         assert!(Interval::valid(&Interval::new(Included(2), Excluded(3))));
@@ -435,30 +449,30 @@ mod tests {
 
     #[test]
     #[should_panic(expected = "Interval is not valid")]
-    fn util_interval_panic_new_1() {
+    fn interval_panic_new_1() {
         assert!(!Interval::valid(&Interval::new(Included(2), Included(1))));
     }
 
     #[test]
     #[should_panic(expected = "Interval is not valid")]
-    fn util_interval_panic_new_2() {
+    fn interval_panic_new_2() {
         assert!(!Interval::valid(&Interval::new(Excluded(2), Included(1))));
     }
 
     #[test]
     #[should_panic(expected = "Interval is not valid")]
-    fn util_interval_panic_new_3() {
+    fn interval_panic_new_3() {
         assert!(!Interval::valid(&Interval::new(Included(2), Excluded(1))));
     }
 
     #[test]
     #[should_panic(expected = "Interval is not valid")]
-    fn util_interval_panic_new_4() {
+    fn interval_panic_new_4() {
         assert!(!Interval::valid(&Interval::new(Excluded(2), Excluded(1))));
     }
 
     #[test]
-    fn util_interval_compare_1() {
+    fn interval_compare_1() {
         let interval1 = Interval::new(Included(2), Included(3));
         let interval2 = Interval::new(Included(2), Excluded(3));
         let interval3 = Interval::new(Excluded(2), Included(3));
@@ -481,7 +495,7 @@ mod tests {
     }
 
     #[test]
-    fn util_interval_overlaps_1() {
+    fn interval_overlaps_1() {
         let interval1 = Interval::new(Included(1), Included(3));
         let interval2 = Interval::new(Included(2), Included(4));
 
@@ -489,7 +503,7 @@ mod tests {
     }
 
     #[test]
-    fn util_interval_overlaps_2() {
+    fn interval_overlaps_2() {
         let interval1 = Interval::new(Included(1), Included(3));
         let interval2 = Interval::new(Included(2), Excluded(3));
 
@@ -497,7 +511,7 @@ mod tests {
     }
 
     #[test]
-    fn util_interval_overlaps_3() {
+    fn interval_overlaps_3() {
         let interval1 = Interval::new(Included(1), Included(3));
         let interval2 = Interval::new(Excluded(1), Excluded(3));
 
@@ -505,7 +519,7 @@ mod tests {
     }
 
     #[test]
-    fn util_interval_overlaps_4() {
+    fn interval_overlaps_4() {
         let interval1 = Interval::new(Included(1), Included(3));
         let interval2 = Interval::new(Excluded(3), Excluded(4));
 
@@ -513,7 +527,7 @@ mod tests {
     }
 
     #[test]
-    fn util_interval_overlaps_5() {
+    fn interval_overlaps_5() {
         let interval1 = Interval::new(Included(1), Included(3));
         let interval2 = Interval::new(Excluded(0), Excluded(1));
 
@@ -521,7 +535,7 @@ mod tests {
     }
 
     #[test]
-    fn util_interval_overlaps_6() {
+    fn interval_overlaps_6() {
         let interval1 = Interval::new(Included(1), Included(3));
         let interval2 = Interval::new(Excluded(4), Excluded(5));
 
@@ -529,7 +543,7 @@ mod tests {
     }
 
     #[test]
-    fn util_interval_overlaps_7() {
+    fn interval_overlaps_7() {
         let interval1 = Interval::new(Unbounded, Included(3));
         let interval2 = Interval::new(Excluded(1), Excluded(5));
 
@@ -537,7 +551,7 @@ mod tests {
     }
 
     #[test]
-    fn util_interval_overlaps_8() {
+    fn interval_overlaps_8() {
         let interval1 = Interval::new(Included(1), Included(3));
         let interval2 = Interval::new(Excluded(4), Unbounded);
 
@@ -545,7 +559,7 @@ mod tests {
     }
 
     #[test]
-    fn until_interval_get_overlap_1() {
+    fn interval_get_overlap_1() {
         let interval1 = Interval::new(Included(1), Included(3));
         let interval2 = Interval::new(Included(2), Included(4));
 
@@ -556,7 +570,7 @@ mod tests {
     }
 
     #[test]
-    fn until_interval_get_overlap_2() {
+    fn interval_get_overlap_2() {
         let interval1 = Interval::new(Included(1), Excluded(3));
         let interval2 = Interval::new(Included(2), Included(4));
 
@@ -567,7 +581,7 @@ mod tests {
     }
 
     #[test]
-    fn until_interval_get_overlap_3() {
+    fn interval_get_overlap_3() {
         let interval1 = Interval::new(Included(1), Excluded(3));
         let interval2 = Interval::new(Included(2), Included(3));
 
@@ -578,7 +592,7 @@ mod tests {
     }
 
     #[test]
-    fn until_interval_get_overlap_4() {
+    fn interval_get_overlap_4() {
         let interval1 = Interval::new(Excluded(1), Excluded(3));
         let interval2 = Interval::new(Included(1), Included(4));
 
@@ -589,7 +603,7 @@ mod tests {
     }
 
     #[test]
-    fn until_interval_get_overlap_5() {
+    fn interval_get_overlap_5() {
         let interval1 = Interval::new(Unbounded, Excluded(3));
         let interval2 = Interval::new(Included(1), Included(2));
 
@@ -600,7 +614,7 @@ mod tests {
     }
 
     #[test]
-    fn until_interval_get_overlap_6() {
+    fn interval_get_overlap_6() {
         let interval1 = Interval::new(Unbounded, Excluded(3));
         let interval2 = Interval::new(Unbounded, Included(2));
 
@@ -611,7 +625,7 @@ mod tests {
     }
 
     #[test]
-    fn until_interval_get_overlap_7() {
+    fn interval_get_overlap_7() {
         let interval1 = Interval::new(Excluded(2), Excluded(3));
         let interval2 = Interval::new(Unbounded, Included(3));
 
@@ -622,7 +636,7 @@ mod tests {
     }
 
     #[test]
-    fn until_interval_get_overlap_8() {
+    fn interval_get_overlap_8() {
         let interval1 = Interval::new(Excluded(2), Unbounded);
         let interval2 = Interval::new(Unbounded, Unbounded);
 
@@ -633,7 +647,7 @@ mod tests {
     }
 
     #[test]
-    fn until_interval_get_overlap_9() {
+    fn interval_get_overlap_9() {
         let interval1 = Interval::new(Excluded(2), Included(3));
         let interval2 = Interval::new(Excluded(3), Included(4));
 
@@ -641,7 +655,7 @@ mod tests {
     }
 
     #[test]
-    fn until_interval_get_overlap_10() {
+    fn interval_get_overlap_10() {
         let interval1 = Interval::new(Excluded(2), Included(3));
         let interval2 = Interval::new(Included(4), Included(4));
 
@@ -649,7 +663,7 @@ mod tests {
     }
 
     #[test]
-    fn until_interval_get_overlap_11() {
+    fn interval_get_overlap_11() {
         let interval1 = Interval::new(Included(3), Included(4));
         let interval2 = Interval::new(Included(2), Included(3));
 
@@ -660,7 +674,7 @@ mod tests {
     }
 
     #[test]
-    fn until_interval_contains_1() {
+    fn interval_contains_1() {
         let interval1 = Interval::new(Included(1), Included(4));
         let interval2 = Interval::new(Included(2), Included(3));
 
@@ -668,7 +682,7 @@ mod tests {
     }
 
     #[test]
-    fn until_interval_contains_2() {
+    fn interval_contains_2() {
         let interval1 = Interval::new(Included(1), Included(4));
         let interval2 = Interval::new(Excluded(1), Included(3));
 
@@ -676,7 +690,7 @@ mod tests {
     }
 
     #[test]
-    fn until_interval_contains_3() {
+    fn interval_contains_3() {
         let interval1 = Interval::new(Included(1), Included(4));
         let interval2 = Interval::new(Included(1), Included(3));
 
@@ -684,7 +698,7 @@ mod tests {
     }
 
     #[test]
-    fn until_interval_contains_4() {
+    fn interval_contains_4() {
         let interval1 = Interval::new(Included(1), Included(4));
         let interval2 = Interval::new(Included(2), Excluded(4));
 
@@ -692,10 +706,32 @@ mod tests {
     }
 
     #[test]
-    fn until_interval_contains_5() {
+    fn interval_contains_5() {
         let interval1 = Interval::new(Included(1), Included(4));
         let interval2 = Interval::new(Included(2), Included(4));
 
         assert!(Interval::contains(&interval1, &interval2));
+    }
+
+    #[test]
+    fn interval_span_1() {
+        let interval1 = Interval::new(Included(2), Included(3));
+        let interval2 = Interval::new(Included(2), Excluded(3));
+        let interval3 = Interval::new(Excluded(2), Included(3));
+        let interval4 = Interval::new(Excluded(2), Excluded(3));
+
+        let interval5 = Interval::new(Unbounded, Excluded(3));
+        let interval6 = Interval::new(Excluded(2), Unbounded);
+        let interval7 = Interval::new(Unbounded, Excluded(3));
+        let interval8 = Interval::<usize>::new(Unbounded, Unbounded);
+
+        assert_eq!(interval1.span(), Some(2));
+        assert_eq!(interval2.span(), Some(1));
+        assert_eq!(interval3.span(), Some(1));
+        assert_eq!(interval4.span(), Some(0));
+        assert_eq!(interval5.span(), None);
+        assert_eq!(interval6.span(), None);
+        assert_eq!(interval7.span(), None);
+        assert_eq!(interval8.span(), None);
     }
 }
