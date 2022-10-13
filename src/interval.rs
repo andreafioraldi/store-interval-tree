@@ -195,9 +195,9 @@ impl<T: Ord> Interval<T> {
 
         match (low, high) {
             (Included(low), Included(high)) => high >= low,
-            (Included(low), Excluded(high))
-            | (Excluded(low), Included(high))
-            | (Excluded(low), Excluded(high)) => high > low,
+            (Included(low) | Excluded(low), Excluded(high)) | (Excluded(low), Included(high)) => {
+                high > low
+            }
             _ => true,
         }
     }
