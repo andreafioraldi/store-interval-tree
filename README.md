@@ -1,6 +1,6 @@
 # store-interval-tree
 
-A balanced interval-tree in Rust with associated values in the nodes.
+A balanced unbounded interval-tree in Rust with associated values in the nodes.
 
 Based on [rudac](https://crates.io/crates/rudac) and [bio](https://crates.io/crates/bio).
 
