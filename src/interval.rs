@@ -4,7 +4,7 @@ use alloc::{
 };
 use core::{
     cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd},
-    ops::Bound::{self, *},
+    ops::Bound::{self, Excluded, Included, Unbounded},
 };
 
 /// A utility data structure to represent intervals.
@@ -78,9 +78,7 @@ impl<T: Ord> Interval<T> {
             high: Rc::new(high),
         };
 
-        if !Interval::valid(&interval) {
-            panic!("Interval is not valid")
-        }
+        assert!(Interval::valid(&interval), "Interval is not valid");
         interval
     }
 
@@ -103,9 +101,7 @@ impl<T: Ord> Interval<T> {
 
         let interval = Interval { low, high };
 
-        if !Interval::valid(&interval) {
-            panic!("Interval is not valid")
-        }
+        assert!(Interval::valid(&interval), "Interval is not valid");
 
         interval
     }
@@ -122,6 +118,7 @@ impl<T: Ord> Interval<T> {
     ///
     /// assert!(interval == duplicate);
     /// ```
+    #[must_use]
     pub fn duplicate(&self) -> Interval<T> {
         Interval {
             low: self.get_low(),
@@ -133,30 +130,34 @@ impl<T: Ord> Interval<T> {
         match (&interval.low(), &interval.high()) {
             (Included(low), Included(high)) => low <= high,
 
-            (Included(low), Excluded(high))
-            | (Excluded(low), Included(high))
-            | (Excluded(low), Excluded(high)) => low < high,
+            (Included(low) | Excluded(low), Excluded(high)) | (Excluded(low), Included(high)) => {
+                low < high
+            }
 
             _ => true,
         }
     }
 
     /// Get reference to lower bound of the interval
+    #[must_use]
     pub fn low(&self) -> &Bound<T> {
         self.low.as_ref()
     }
 
     /// Get a duplicate of lower bound of the interval
+    #[must_use]
     pub fn get_low(&self) -> Rc<Bound<T>> {
         Rc::clone(&self.low)
     }
 
     /// Get reference to higher bound of the interval
+    #[must_use]
     pub fn high(&self) -> &Bound<T> {
         self.high.as_ref()
     }
 
     /// Get a duplicate of higher bound of the interval
+    #[must_use]
     pub fn get_high(&self) -> Rc<Bound<T>> {
         Rc::clone(&self.high)
     }
@@ -176,6 +177,7 @@ impl<T: Ord> Interval<T> {
     /// assert!(Interval::overlaps(&interval1, &point1));
     /// assert!(!Interval::overlaps(&interval2, &point1));
     /// ```
+    #[must_use]
     pub fn overlaps(first: &Interval<T>, second: &Interval<T>) -> bool {
         let high: &Bound<T>;
         let low: &Bound<T>;
@@ -191,10 +193,10 @@ impl<T: Ord> Interval<T> {
         }
 
         match (low, high) {
-            (Included(_low), Included(_high)) => _high >= _low,
-            (Included(_low), Excluded(_high)) => _high > _low,
-            (Excluded(_low), Included(_high)) => _high > _low,
-            (Excluded(_low), Excluded(_high)) => _high > _low,
+            (Included(low), Included(high)) => high >= low,
+            (Included(low) | Excluded(low), Excluded(high)) | (Excluded(low), Included(high)) => {
+                high > low
+            }
             _ => true,
         }
     }
@@ -211,6 +213,7 @@ impl<T: Ord> Interval<T> {
     ///
     /// assert!(Interval::contains(&interval1, &interval2));
     /// ```
+    #[must_use]
     pub fn contains(first: &Interval<T>, second: &Interval<T>) -> bool {
         if Interval::overlaps(first, second) {
             let overlap = Interval::get_overlap(first, second).unwrap();
@@ -234,14 +237,14 @@ impl<T: Ord> Interval<T> {
     ///
     /// assert!(Interval::get_overlap(&interval1, &interval2).unwrap() == interval2);
     /// ```
+    #[must_use]
     pub fn get_overlap(first: &Interval<T>, second: &Interval<T>) -> Option<Interval<T>> {
         if !Interval::overlaps(first, second) {
             return None;
         }
 
         let low = match (&first.low(), &second.low()) {
-            (Included(low1), Included(low2))
-            | (Excluded(low1), Included(low2))
+            (Included(low1) | Excluded(low1), Included(low2))
             | (Excluded(low1), Excluded(low2)) => {
                 if low1 >= low2 {
                     Rc::clone(&first.low)
@@ -256,15 +259,14 @@ impl<T: Ord> Interval<T> {
                     Rc::clone(&second.low)
                 }
             }
-            (Unbounded, Included(_)) | (Unbounded, Excluded(_)) => Rc::clone(&second.low),
-            (Included(_), Unbounded) | (Excluded(_), Unbounded) => Rc::clone(&first.low),
+            (Unbounded, Included(_) | Excluded(_)) => Rc::clone(&second.low),
+            (Included(_) | Excluded(_), Unbounded) => Rc::clone(&first.low),
 
             (Unbounded, Unbounded) => Rc::new(Unbounded),
         };
 
         let high = match (&first.high(), &second.high()) {
-            (Included(high1), Included(high2))
-            | (Excluded(high1), Included(high2))
+            (Included(high1) | Excluded(high1), Included(high2))
             | (Excluded(high1), Excluded(high2)) => {
                 if high1 <= high2 {
                     Rc::clone(&first.high)
@@ -279,8 +281,8 @@ impl<T: Ord> Interval<T> {
                     Rc::clone(&second.high)
                 }
             }
-            (Unbounded, Included(_)) | (Unbounded, Excluded(_)) => Rc::clone(&second.high),
-            (Included(_), Unbounded) | (Excluded(_), Unbounded) => Rc::clone(&first.high),
+            (Unbounded, Included(_) | Excluded(_)) => Rc::clone(&second.high),
+            (Included(_) | Excluded(_), Unbounded) => Rc::clone(&first.high),
 
             (Unbounded, Unbounded) => Rc::new(Unbounded),
         };
@@ -319,7 +321,7 @@ impl<T: Ord> PartialOrd for Interval<T> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         // compare low end of the intervals
         let mut result = match (&self.low(), &other.low()) {
-            (Included(low1), Included(low2)) => {
+            (Included(low1), Included(low2)) | (Excluded(low1), Excluded(low2)) => {
                 if low1 < low2 {
                     Some(Ordering::Less)
                 } else if low1 == low2 {
@@ -342,21 +344,10 @@ impl<T: Ord> PartialOrd for Interval<T> {
                     Some(Ordering::Greater)
                 }
             }
-            (Excluded(low1), Excluded(low2)) => {
-                if low1 < low2 {
-                    Some(Ordering::Less)
-                } else if low1 == low2 {
-                    None
-                } else {
-                    Some(Ordering::Greater)
-                }
-            }
 
-            (Unbounded, Included(_)) => Some(Ordering::Less),
-            (Unbounded, Excluded(_)) => Some(Ordering::Less),
+            (Unbounded, Included(_) | Excluded(_)) => Some(Ordering::Less),
 
-            (Included(_), Unbounded) => Some(Ordering::Greater),
-            (Excluded(_), Unbounded) => Some(Ordering::Greater),
+            (Included(_) | Excluded(_), Unbounded) => Some(Ordering::Greater),
 
             (Unbounded, Unbounded) => None,
         };
@@ -364,7 +355,7 @@ impl<T: Ord> PartialOrd for Interval<T> {
         // if low end was not enough to determine ordering, use high end
         if result.is_none() {
             result = match (&self.high(), &other.high()) {
-                (Included(high1), Included(high2)) => {
+                (Included(high1), Included(high2)) | (Excluded(high1), Excluded(high2)) => {
                     if high1 < high2 {
                         Some(Ordering::Less)
                     } else if high1 == high2 {
@@ -387,20 +378,9 @@ impl<T: Ord> PartialOrd for Interval<T> {
                         Some(Ordering::Greater)
                     }
                 }
-                (Excluded(high1), Excluded(high2)) => {
-                    if high1 < high2 {
-                        Some(Ordering::Less)
-                    } else if high1 == high2 {
-                        Some(Ordering::Equal)
-                    } else {
-                        Some(Ordering::Greater)
-                    }
-                }
-                (Unbounded, Included(_)) => Some(Ordering::Greater),
-                (Unbounded, Excluded(_)) => Some(Ordering::Greater),
+                (Unbounded, Included(_) | Excluded(_)) => Some(Ordering::Greater),
 
-                (Included(_), Unbounded) => Some(Ordering::Less),
-                (Excluded(_), Unbounded) => Some(Ordering::Less),
+                (Included(_) | Excluded(_), Unbounded) => Some(Ordering::Less),
 
                 (Unbounded, Unbounded) => Some(Ordering::Equal),
             };

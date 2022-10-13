@@ -13,11 +13,13 @@ pub struct Entry<'a, T: Ord, V> {
 
 impl<'a, T: Ord + 'a, V: 'a> Entry<'a, T, V> {
     /// Get a reference to the data for this entry
+    #[must_use]
     pub fn value(&self) -> &'a V {
         self.value
     }
 
     /// Get a reference to the interval for this entry
+    #[must_use]
     pub fn interval(&self) -> &'a Interval<T> {
         self.interval
     }
@@ -25,6 +27,7 @@ impl<'a, T: Ord + 'a, V: 'a> Entry<'a, T, V> {
 
 /// An `IntervalTreeIterator` is returned by `Intervaltree::find` and iterates over the entries
 /// overlapping the query
+#[derive(Debug)]
 pub struct IntervalTreeIterator<'a, T: Ord, V> {
     pub(crate) nodes: Vec<&'a Node<T, V>>,
     pub(crate) interval: &'a Interval<T>,
@@ -45,8 +48,8 @@ impl<'a, T: Ord + 'a, V: 'a> Iterator for IntervalTreeIterator<'a, T, V> {
             }
             if node_ref.left_child.is_some()
                 && Node::<T, V>::is_ge(
-                    node_ref.left_child.as_ref().unwrap().get_max(),
-                    self.interval.get_low(),
+                    &node_ref.left_child.as_ref().unwrap().get_max(),
+                    &self.interval.get_low(),
                 )
             {
                 self.nodes.push(node_ref.left_child.as_ref().unwrap());
@@ -78,6 +81,7 @@ impl<'a, T: Ord + 'a, V: 'a> EntryMut<'a, T, V> {
     }
 
     /// Get a reference to the interval for this entry
+    #[must_use]
     pub fn interval(&self) -> &'a Interval<T> {
         self.interval
     }
@@ -85,6 +89,7 @@ impl<'a, T: Ord + 'a, V: 'a> EntryMut<'a, T, V> {
 
 /// An `IntervalTreeIteratorMut` is returned by `Intervaltree::find_mut` and iterates over the entries
 /// overlapping the query allowing mutable access to the data `D`, not the `Interval`.
+#[derive(Debug)]
 pub struct IntervalTreeIteratorMut<'a, T: Ord, V> {
     pub(crate) nodes: Vec<&'a mut Node<T, V>>,
     pub(crate) interval: &'a Interval<T>,
@@ -107,8 +112,8 @@ impl<'a, T: Ord + 'a, V: 'a> Iterator for IntervalTreeIteratorMut<'a, T, V> {
             }
             if node_ref.left_child.is_some()
                 && Node::<T, V>::is_ge(
-                    node_ref.left_child.as_ref().unwrap().get_max(),
-                    self.interval.get_low(),
+                    &node_ref.left_child.as_ref().unwrap().get_max(),
+                    &self.interval.get_low(),
                 )
             {
                 self.nodes.push(node_ref.left_child.as_mut().unwrap());

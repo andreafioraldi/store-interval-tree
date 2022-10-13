@@ -1,12 +1,12 @@
 use alloc::{boxed::Box, rc::Rc};
 use core::{
     cmp::{max, Ord},
-    ops::Bound::{self, *},
+    ops::Bound::{self, Excluded, Included, Unbounded},
 };
 
 use crate::interval::Interval;
 
-#[derive(Hash)]
+#[derive(Debug, Hash)]
 pub(crate) struct Node<T: Ord, V> {
     pub interval: Option<Interval<T>>,
     pub value: Option<V>,
@@ -60,6 +60,8 @@ impl<T: Ord, V> Node<T, V> {
         Rc::clone(self.max.as_ref().unwrap())
     }
 
+    // _max_height is at least -1, so +1 is a least 0 - and it can never be higher than usize
+    #[allow(clippy::cast_sign_loss, clippy::cast_possible_truncation)]
     pub fn update_height(&mut self) {
         self.height = (1 + Node::_max_height(&self.left_child, &self.right_child)) as usize;
     }
@@ -70,15 +72,15 @@ impl<T: Ord, V> Node<T, V> {
 
     pub fn update_max(&mut self) {
         let max = match (&self.left_child, &self.right_child) {
-            (Some(_left_child), Some(_right_child)) => Node::<T, V>::find_max(
+            (Some(left_child), Some(right_child)) => Node::<T, V>::find_max(
                 self.interval().get_high(),
-                Node::<T, V>::find_max(_left_child.get_max(), _right_child.get_max()),
+                Node::<T, V>::find_max(left_child.get_max(), right_child.get_max()),
             ),
-            (Some(_left_child), None) => {
-                Node::<T, V>::find_max(self.interval().get_high(), _left_child.get_max())
+            (Some(left_child), None) => {
+                Node::<T, V>::find_max(self.interval().get_high(), left_child.get_max())
             }
-            (None, Some(_right_child)) => {
-                Node::<T, V>::find_max(self.interval().get_high(), _right_child.get_max())
+            (None, Some(right_child)) => {
+                Node::<T, V>::find_max(self.interval().get_high(), right_child.get_max())
             }
             (None, None) => self.interval().get_high(),
         };
@@ -88,17 +90,16 @@ impl<T: Ord, V> Node<T, V> {
 
     pub fn find_max(bound1: Rc<Bound<T>>, bound2: Rc<Bound<T>>) -> Rc<Bound<T>> {
         match (bound1.as_ref(), bound2.as_ref()) {
-            (Included(_val1), Included(_val2))
-            | (Included(_val1), Excluded(_val2))
-            | (Excluded(_val1), Excluded(_val2)) => {
-                if _val1 >= _val2 {
+            (Included(val1), Included(val2) | Excluded(val2))
+            | (Excluded(val1), Excluded(val2)) => {
+                if val1 >= val2 {
                     bound1
                 } else {
                     bound2
                 }
             }
-            (Excluded(_val1), Included(_val2)) => {
-                if _val1 > _val2 {
+            (Excluded(val1), Included(val2)) => {
+                if val1 > val2 {
                     bound1
                 } else {
                     bound2
@@ -109,12 +110,11 @@ impl<T: Ord, V> Node<T, V> {
         }
     }
 
-    pub fn is_ge(bound1: Rc<Bound<T>>, bound2: Rc<Bound<T>>) -> bool {
+    pub fn is_ge(bound1: &Rc<Bound<T>>, bound2: &Rc<Bound<T>>) -> bool {
         match (bound1.as_ref(), bound2.as_ref()) {
-            (Included(_val1), Included(_val2)) => _val1 >= _val2,
-            (Included(_val1), Excluded(_val2)) => _val1 > _val2,
-            (Excluded(_val1), Included(_val2)) => _val1 > _val2,
-            (Excluded(_val1), Excluded(_val2)) => _val1 > _val2,
+            (Included(val1), Included(val2)) => val1 >= val2,
+            (Included(val1) | Excluded(val1), Excluded(val2))
+            | (Excluded(val1), Included(val2)) => val1 > val2,
 
             (Unbounded, Included(_val2)) => true,
             (Unbounded, Excluded(_val2)) => true,
@@ -131,19 +131,19 @@ impl<T: Ord, V> Node<T, V> {
 
     pub fn height(node: &Option<Box<Node<T, V>>>) -> i64 {
         match node {
-            Some(_node) => _node.height as i64,
+            Some(node) => node.height as i64,
             None => -1,
         }
     }
 
     pub fn size(node: &Option<Box<Node<T, V>>>) -> usize {
         match node {
-            Some(_node) => _node.size,
+            Some(node) => node.size,
             None => 0,
         }
     }
 
-    pub fn balance_factor(node: &Box<Node<T, V>>) -> i64 {
+    pub fn balance_factor(node: &Node<T, V>) -> i64 {
         Node::height(&node.left_child) - Node::height(&node.right_child)
     }
 }
