@@ -1,7 +1,8 @@
-use std::cmp::Ord;
-use std::ops::Bound;
-use std::ops::Bound::*;
-use std::rc::Rc;
+use alloc::{boxed::Box, rc::Rc};
+use core::{
+    cmp::{max, Ord},
+    ops::Bound::{self, *},
+};
 
 use crate::interval::Interval;
 
@@ -125,7 +126,7 @@ impl<T: Ord, V> Node<T, V> {
     }
 
     pub fn _max_height(node1: &Option<Box<Node<T, V>>>, node2: &Option<Box<Node<T, V>>>) -> i64 {
-        std::cmp::max(Node::height(node1), Node::height(node2))
+        max(Node::height(node1), Node::height(node2))
     }
 
     pub fn height(node: &Option<Box<Node<T, V>>>) -> i64 {

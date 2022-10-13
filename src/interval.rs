@@ -1,7 +1,8 @@
-use std::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
-use std::ops::Bound;
-use std::ops::Bound::*;
-use std::rc::Rc;
+use alloc::{rc::Rc, string::String};
+use core::{
+    cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd},
+    ops::Bound::{self, *},
+};
 
 /// A utility data structure to represent intervals.
 /// It supports open, close and unbounded intervals
@@ -285,8 +286,8 @@ impl<T: Ord> Interval<T> {
     }
 }
 
-impl<T: Ord + std::fmt::Display> std::fmt::Display for Interval<T> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl<T: Ord + core::fmt::Display> core::fmt::Display for Interval<T> {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         let low: String;
         let high: String;
 

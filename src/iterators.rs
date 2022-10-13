@@ -1,8 +1,7 @@
-use std::cmp::Ord;
-use std::fmt::Debug;
+use alloc::vec::Vec;
+use core::{cmp::Ord, fmt::Debug};
 
-use crate::interval::Interval;
-use crate::node::Node;
+use crate::{interval::Interval, node::Node};
 
 /// A `find` query on the interval tree does not directly return references to the nodes in the tree, but
 /// wraps the fields `interval` and `data` in an `Entry`.

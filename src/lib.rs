@@ -1,7 +1,16 @@
-use std::cmp::Ord;
-use std::fmt::Debug;
-use std::ops::Bound;
-use std::rc::Rc;
+#![no_std]
+#![warn(clippy::cargo)]
+#![deny(clippy::cargo_common_metadata)]
+#![deny(rustdoc::broken_intra_doc_links)]
+#![deny(clippy::all)]
+
+#[macro_use]
+pub extern crate alloc;
+
+use alloc::{boxed::Box, rc::Rc, vec::Vec};
+use core::cmp::Ord;
+use core::fmt::Debug;
+use core::ops::Bound;
 
 mod interval;
 pub use interval::Interval;
@@ -885,7 +894,7 @@ impl<T: Ord, V> IntervalTree<T, V> {
 }
 
 impl<T: Debug + Ord, V: Debug> Debug for IntervalTree<T, V> {
-    fn fmt(&self, fmt: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, fmt: &mut core::fmt::Formatter) -> core::fmt::Result {
         fmt.write_str("IntervalTree ")?;
         fmt.debug_set().entries(self.intervals().iter()).finish()
     }
@@ -893,8 +902,10 @@ impl<T: Debug + Ord, V: Debug> Debug for IntervalTree<T, V> {
 
 #[cfg(test)]
 mod tests {
+    use alloc::string::String;
+
     use super::*;
-    use std::ops::Bound::*;
+    use core::ops::Bound::*;
 
     #[test]
     fn tree_interval_init() {
