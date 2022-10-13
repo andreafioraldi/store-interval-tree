@@ -14,4 +14,4 @@ categories = ["data-structures", "algorithms", "no-std"]
 [features]
 
 [dependencies]
-num = "0.4"
+num = { version = "0.4", default_features = false }
