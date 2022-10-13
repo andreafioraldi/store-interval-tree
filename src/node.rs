@@ -29,8 +29,8 @@ impl<T: Ord, V> Node<T, V> {
             interval: Some(interval),
             value: Some(value),
             max: Some(max),
-            height: height,
-            size: size,
+            height,
+            size,
             left_child: None,
             right_child: None,
         }
@@ -57,7 +57,7 @@ impl<T: Ord, V> Node<T, V> {
     }
 
     pub fn get_max(&self) -> Rc<Bound<T>> {
-        Rc::clone(&self.max.as_ref().unwrap())
+        Rc::clone(self.max.as_ref().unwrap())
     }
 
     pub fn update_height(&mut self) {

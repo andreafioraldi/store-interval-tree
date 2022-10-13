@@ -1,4 +1,7 @@
-use alloc::{rc::Rc, string::String};
+use alloc::{
+    rc::Rc,
+    string::{String, ToString},
+};
 use core::{
     cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd},
     ops::Bound::{self, *},
@@ -288,19 +291,16 @@ impl<T: Ord> Interval<T> {
 
 impl<T: Ord + core::fmt::Display> core::fmt::Display for Interval<T> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let low: String;
-        let high: String;
-
-        low = match &self.low() {
+        let low: String = match &self.low() {
             Included(low) => format!("[{}", low),
             Excluded(low) => format!("({}", low),
-            Unbounded => format!("(_"),
+            Unbounded => "(_".to_string(),
         };
 
-        high = match &self.high() {
+        let high: String = match &self.high() {
             Included(high) => format!("{}]", high),
             Excluded(high) => format!("{})", high),
-            Unbounded => format!("_)"),
+            Unbounded => "_)".to_string(),
         };
 
         write!(f, "{},{}", low, high)
@@ -406,7 +406,7 @@ impl<T: Ord> PartialOrd for Interval<T> {
             };
         }
 
-        return result;
+        result
     }
 }
 

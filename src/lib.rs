@@ -510,17 +510,15 @@ impl<T: Ord, V> IntervalTree<T, V> {
                     _node.left_child = IntervalTree::_delete(_node.left_child.take(), interval);
                 } else if *interval > *_node.interval() {
                     _node.right_child = IntervalTree::_delete(_node.right_child.take(), interval);
+                } else if _node.left_child.is_none() {
+                    return _node.right_child;
+                } else if _node.right_child.is_none() {
+                    return _node.left_child;
                 } else {
-                    if _node.left_child.is_none() {
-                        return _node.right_child;
-                    } else if _node.right_child.is_none() {
-                        return _node.left_child;
-                    } else {
-                        let mut y = _node;
-                        _node = IntervalTree::_min(&mut y.right_child);
-                        _node.right_child = IntervalTree::_delete_min(y.right_child.unwrap());
-                        _node.left_child = y.left_child;
-                    }
+                    let mut y = _node;
+                    _node = IntervalTree::_min(&mut y.right_child);
+                    _node.right_child = IntervalTree::_delete_min(y.right_child.unwrap());
+                    _node.left_child = y.left_child;
                 }
 
                 _node.update_height();
@@ -687,9 +685,9 @@ impl<T: Ord, V> IntervalTree<T, V> {
 
         let t = Node::size(&node_ref.left_child);
         if t > k {
-            return IntervalTree::_select(&node_ref.left_child, k);
+            IntervalTree::_select(&node_ref.left_child, k)
         } else if t < k {
-            return IntervalTree::_select(&node_ref.right_child, k - t - 1);
+            IntervalTree::_select(&node_ref.right_child, k - t - 1)
         } else {
             return Some(node_ref.interval().duplicate());
         }
@@ -889,7 +887,7 @@ impl<T: Ord, V> IntervalTree<T, V> {
             return 0;
         }
 
-        return self.rank(high_bound) - self.rank(low_bound) + 1;
+        self.rank(high_bound) - self.rank(low_bound) + 1
     }
 }
 

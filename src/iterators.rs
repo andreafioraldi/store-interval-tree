@@ -52,10 +52,10 @@ impl<'a, T: Ord + 'a, V: 'a> Iterator for IntervalTreeIterator<'a, T, V> {
                 self.nodes.push(node_ref.left_child.as_ref().unwrap());
             }
 
-            if Interval::overlaps(node_ref.interval(), &self.interval) {
+            if Interval::overlaps(node_ref.interval(), self.interval) {
                 return Some(Entry {
                     value: node_ref.value(),
-                    interval: &node_ref.interval(),
+                    interval: node_ref.interval(),
                 });
             }
         }
@@ -74,7 +74,7 @@ pub struct EntryMut<'a, T: Ord, V> {
 impl<'a, T: Ord + 'a, V: 'a> EntryMut<'a, T, V> {
     /// Get a mutable reference to the data for this entry
     pub fn value(&'a mut self) -> &'a mut V {
-        &mut self.value
+        self.value
     }
 
     /// Get a reference to the interval for this entry
@@ -100,7 +100,7 @@ impl<'a, T: Ord + 'a, V: 'a> Iterator for IntervalTreeIteratorMut<'a, T, V> {
                 Some(node) => node,
             };
 
-            let overlaps = Interval::overlaps(node_ref.interval(), &self.interval);
+            let overlaps = Interval::overlaps(node_ref.interval(), self.interval);
 
             if node_ref.right_child.is_some() {
                 self.nodes.push(node_ref.right_child.as_mut().unwrap());
