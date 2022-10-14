@@ -620,7 +620,7 @@ impl<T: Ord, V> IntervalTree<T, V> {
 
         node.update_height();
         node.update_size();
-        node.update_size();
+        node.update_max();
 
         Some(IntervalTree::balance(node))
     }
