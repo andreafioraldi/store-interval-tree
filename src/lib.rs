@@ -82,7 +82,7 @@ pub use iterators::{Entry, EntryMut, IntervalTreeIterator, IntervalTreeIteratorM
 /// // intervals are: (15,23), [16,21), [17,19), (19,20]
 /// let intervals = interval_tree.intervals_between(&low, &high);
 /// ```
-#[derive(Default, Hash)]
+#[derive(Clone, Default, Hash)]
 pub struct IntervalTree<T: Ord, V> {
     root: Option<Box<Node<T, V>>>,
 }

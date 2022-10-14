@@ -42,7 +42,7 @@ use num::Num;
 /// // get overlapped interval between two intervals
 /// assert!(Interval::get_overlap(&interval1, &interval2).unwrap() == interval2);
 /// ```
-#[derive(Debug, Hash)]
+#[derive(Clone, Debug, Hash)]
 pub struct Interval<T: Ord> {
     low: Rc<Bound<T>>,
     high: Rc<Bound<T>>,

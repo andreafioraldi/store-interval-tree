@@ -6,7 +6,7 @@ use core::{
 
 use crate::interval::Interval;
 
-#[derive(Debug, Hash)]
+#[derive(Clone, Debug, Hash)]
 pub(crate) struct Node<T: Ord, V> {
     pub interval: Option<Interval<T>>,
     pub value: Option<V>,

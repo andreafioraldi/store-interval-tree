@@ -1,6 +1,6 @@
 [package]
 name = "store-interval-tree"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 authors = ["Andrea Fioraldi <andreafioraldi@gmail.com>"]
 description = "A balanced unbounded interval-tree in Rust with associated values in the nodes"
