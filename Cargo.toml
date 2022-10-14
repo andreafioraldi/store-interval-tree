@@ -9,6 +9,9 @@ repository = "https://github.com/andreafioraldi/store-interval-tree"
 readme = "README.md"
 license = "MIT OR Apache-2.0"
 keywords = ["tree", "data-structure", "algorithm"]
+categories = ["data-structures", "algorithms", "no-std"]
+
+[features]
 
 [dependencies]
-num = "0.4"
+num = { version = "0.4", default_features = false }
