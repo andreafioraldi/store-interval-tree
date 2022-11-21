@@ -28,15 +28,15 @@ impl<'a, T: Ord + 'a, V: 'a> Entry<'a, T, V> {
 /// An `IntervalTreeIterator` is returned by `Intervaltree::find` and iterates over the entries
 /// overlapping the query
 #[derive(Debug)]
-pub struct IntervalTreeIterator<'a, T: Ord, V> {
-    pub(crate) nodes: Vec<&'a Node<T, V>>,
-    pub(crate) interval: &'a Interval<T>,
+pub struct IntervalTreeIterator<'v, 'i, T: Ord, V> {
+    pub(crate) nodes: Vec<&'v Node<T, V>>,
+    pub(crate) interval: &'i Interval<T>,
 }
 
-impl<'a, T: Ord + 'a, V: 'a> Iterator for IntervalTreeIterator<'a, T, V> {
-    type Item = Entry<'a, T, V>;
+impl<'v, 'i, T: Ord + 'i, V: 'v> Iterator for IntervalTreeIterator<'v, 'i, T, V> {
+    type Item = Entry<'v, T, V>;
 
-    fn next(&mut self) -> Option<Entry<'a, T, V>> {
+    fn next(&mut self) -> Option<Entry<'v, T, V>> {
         loop {
             let node_ref = match self.nodes.pop() {
                 None => return None,
@@ -90,15 +90,15 @@ impl<'a, T: Ord + 'a, V: 'a> EntryMut<'a, T, V> {
 /// An `IntervalTreeIteratorMut` is returned by `Intervaltree::find_mut` and iterates over the entries
 /// overlapping the query allowing mutable access to the data `D`, not the `Interval`.
 #[derive(Debug)]
-pub struct IntervalTreeIteratorMut<'a, T: Ord, V> {
-    pub(crate) nodes: Vec<&'a mut Node<T, V>>,
-    pub(crate) interval: &'a Interval<T>,
+pub struct IntervalTreeIteratorMut<'v, 'i, T: Ord, V> {
+    pub(crate) nodes: Vec<&'v mut Node<T, V>>,
+    pub(crate) interval: &'i Interval<T>,
 }
 
-impl<'a, T: Ord + 'a, V: 'a> Iterator for IntervalTreeIteratorMut<'a, T, V> {
-    type Item = EntryMut<'a, T, V>;
+impl<'v, 'i, T: Ord + 'i, V: 'v> Iterator for IntervalTreeIteratorMut<'v, 'i, T, V> {
+    type Item = EntryMut<'v, T, V>;
 
-    fn next(&mut self) -> Option<EntryMut<'a, T, V>> {
+    fn next(&mut self) -> Option<EntryMut<'v, T, V>> {
         loop {
             let node_ref = match self.nodes.pop() {
                 None => return None,

@@ -153,9 +153,13 @@ impl<T: Ord, V> IntervalTree<T, V> {
     /// assert!(interval_tree.find_overlap(&Interval::new(Excluded(10), Excluded(15))).is_none());
     /// ```
     #[must_use]
-    pub fn query<'a, 'b>(&'a self, interval: &'b Interval<T>) -> IntervalTreeIterator<'b, T, V>
+    pub fn query<'a, 'v, 'i>(
+        &'a self,
+        interval: &'i Interval<T>,
+    ) -> IntervalTreeIterator<'v, 'i, T, V>
     where
-        'a: 'b,
+        'a: 'v,
+        'a: 'i,
     {
         if let Some(ref n) = self.root {
             IntervalTreeIterator {
@@ -201,12 +205,13 @@ impl<T: Ord, V> IntervalTree<T, V> {
     /// // there is no interval in the tree that has interval with (10,15)
     /// assert!(interval_tree.find_overlap(&Interval::new(Excluded(10), Excluded(15))).is_none());
     /// ```
-    pub fn query_mut<'a, 'b>(
+    pub fn query_mut<'a, 'v, 'i>(
         &'a mut self,
-        interval: &'b Interval<T>,
-    ) -> IntervalTreeIteratorMut<'b, T, V>
+        interval: &'i Interval<T>,
+    ) -> IntervalTreeIteratorMut<'v, 'i, T, V>
     where
-        'a: 'b,
+        'a: 'v,
+        'a: 'i,
     {
         if let Some(ref mut n) = self.root {
             IntervalTreeIteratorMut {
